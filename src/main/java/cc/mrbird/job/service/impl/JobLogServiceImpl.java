@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +33,7 @@ public class JobLogServiceImpl extends BaseService<JobLog> implements JobLogServ
 			if (StringUtils.isNotBlank(jobLog.getStatus())) {
 				criteria.andCondition("status=", Long.valueOf(jobLog.getStatus()));
 			}
-			example.setOrderByClause("log_id");
+			example.setOrderByClause("log_id desc");
 			return this.selectByExample(example);
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
