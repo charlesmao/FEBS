@@ -1,14 +1,5 @@
 package cc.mrbird.system.controller;
 
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import cc.mrbird.common.annotation.Log;
 import cc.mrbird.common.controller.BaseController;
 import cc.mrbird.common.domain.ResponseBo;
@@ -16,6 +7,16 @@ import cc.mrbird.common.domain.Tree;
 import cc.mrbird.common.util.FileUtils;
 import cc.mrbird.system.domain.Menu;
 import cc.mrbird.system.service.MenuService;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class MenuController extends BaseController {
@@ -184,5 +185,12 @@ public class MenuController extends BaseController {
 			e.printStackTrace();
 			return ResponseBo.error("修改" + name + "失败，请联系网站管理员！");
 		}
+	}
+
+	@Log("获取系统所有URL")
+	@GetMapping("menu/urlList")
+	@ResponseBody
+	public List<Map<String, String>> getAllUrl() {
+		return this.menuService.getAllUrl("1");
 	}
 }
