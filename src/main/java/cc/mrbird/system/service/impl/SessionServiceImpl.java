@@ -37,8 +37,8 @@ public class SessionServiceImpl implements SessionService {
         Collection<Session> sessions = sessionDAO.getActiveSessions();
         for (Session session : sessions) {
             UserOnline userOnline = new UserOnline();
-            User user = new User();
-            SimplePrincipalCollection principalCollection = new SimplePrincipalCollection();
+            User user;
+            SimplePrincipalCollection principalCollection;
             if (session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY) == null) {
                 continue;
             } else {
@@ -58,7 +58,7 @@ public class SessionServiceImpl implements SessionService {
             } else {
                 userOnline.setStatus("1");
             }
-            String address = AddressUtils.getRealAddressByIP(userOnline.getHost(), mapper);
+            String address = AddressUtils.getCityInfo(userOnline.getHost());
             userOnline.setLocation(address);
             userOnline.setTimeout(timeout);
             list.add(userOnline);

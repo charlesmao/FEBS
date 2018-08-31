@@ -32,7 +32,7 @@ import java.util.Objects;
  */
 @Aspect
 @Component
-public class LimitAspect{
+public class LimitAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(LimitAspect.class);
 
@@ -45,6 +45,7 @@ public class LimitAspect{
 
     @Pointcut("@annotation(cc.mrbird.common.annotation.Limit)")
     public void pointcut() {
+        // do nothing
     }
 
     @Around("pointcut()")
@@ -70,21 +71,22 @@ public class LimitAspect{
                 key = StringUtils.upperCase(method.getName());
         }
         ImmutableList<String> keys = ImmutableList.of(StringUtils.join(limitAnnotation.prefix() + "_", key));
-            String luaScript = buildLuaScript();
-            RedisScript<Number> redisScript = new DefaultRedisScript<>(luaScript, Number.class);
-            Number count = limitRedisTemplate.execute(redisScript, keys, limitCount, limitPeriod);
-            logger.info("第{}次访问key为 {}，描述为 [{}] 的接口", count, keys, name);
-            if (count != null && count.intValue() <= limitCount) {
-                return point.proceed();
-            } else {
-                throw new LimitAccessException("接口访问超出频率限制");
-            }
+        String luaScript = buildLuaScript();
+        RedisScript<Number> redisScript = new DefaultRedisScript<>(luaScript, Number.class);
+        Number count = limitRedisTemplate.execute(redisScript, keys, limitCount, limitPeriod);
+        logger.info("第{}次访问key为 {}，描述为 [{}] 的接口", count, keys, name);
+        if (count != null && count.intValue() <= limitCount) {
+            return point.proceed();
+        } else {
+            throw new LimitAccessException("接口访问超出频率限制");
+        }
 
     }
 
     /**
      * 限流脚本
      * 调用的时候不超过阈值，则直接返回并执行计算器自加。
+     *
      * @return lua脚本
      */
     private String buildLuaScript() {
