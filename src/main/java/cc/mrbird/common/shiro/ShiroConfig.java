@@ -1,7 +1,7 @@
 package cc.mrbird.common.shiro;
 
 import at.pollux.thymeleaf.shiro.dialect.ShiroDialect;
-import cc.mrbird.common.config.FebsProperies;
+import cc.mrbird.common.config.FebsProperties;
 import cc.mrbird.common.listener.ShiroSessionListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.codec.Base64;
@@ -37,7 +37,7 @@ import java.util.LinkedHashMap;
 public class ShiroConfig {
 
     @Autowired
-    private FebsProperies febsProperies;
+    private FebsProperties febsProperties;
 
     @Value("${spring.redis.host}")
     private String host;
@@ -59,7 +59,7 @@ public class ShiroConfig {
     private RedisManager redisManager() {
         RedisManager redisManager = new RedisManager();
         // 缓存时间，单位为秒
-        redisManager.setExpire(febsProperies.getShiro().getExpireIn());
+        //redisManager.setExpire(febsProperties.getShiro().getExpireIn()); // removed from shiro-redis v3.1.0 api
         redisManager.setHost(host);
         redisManager.setPort(port);
         if (StringUtils.isNotBlank(password))
@@ -80,19 +80,19 @@ public class ShiroConfig {
         // 设置 securityManager
         shiroFilterFactoryBean.setSecurityManager(securityManager);
         // 登录的 url
-        shiroFilterFactoryBean.setLoginUrl(febsProperies.getShiro().getLoginUrl());
+        shiroFilterFactoryBean.setLoginUrl(febsProperties.getShiro().getLoginUrl());
         // 登录成功后跳转的 url
-        shiroFilterFactoryBean.setSuccessUrl(febsProperies.getShiro().getSuccessUrl());
+        shiroFilterFactoryBean.setSuccessUrl(febsProperties.getShiro().getSuccessUrl());
         // 未授权 url
-        shiroFilterFactoryBean.setUnauthorizedUrl(febsProperies.getShiro().getUnauthorizedUrl());
+        shiroFilterFactoryBean.setUnauthorizedUrl(febsProperties.getShiro().getUnauthorizedUrl());
         LinkedHashMap<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         // 设置免认证 url
-        String[] anonUrls = StringUtils.splitByWholeSeparatorPreserveAllTokens(febsProperies.getShiro().getAnonUrl(), ",");
+        String[] anonUrls = StringUtils.splitByWholeSeparatorPreserveAllTokens(febsProperties.getShiro().getAnonUrl(), ",");
         for (String url : anonUrls) {
             filterChainDefinitionMap.put(url, "anon");
         }
         // 配置退出过滤器，其中具体的退出代码 Shiro已经替我们实现了
-        filterChainDefinitionMap.put(febsProperies.getShiro().getLogoutUrl(), "logout");
+        filterChainDefinitionMap.put(febsProperties.getShiro().getLogoutUrl(), "logout");
         // 除上以外所有 url都必须认证通过才可以访问，未通过认证自动访问 LoginUrl
         filterChainDefinitionMap.put("/**", "user");
 
@@ -114,12 +114,6 @@ public class ShiroConfig {
         return securityManager;
     }
 
-    @Bean(name = "lifecycleBeanPostProcessor")
-    public static LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
-        // shiro 生命周期处理器
-        return new LifecycleBeanPostProcessor();
-    }
-
     @Bean
     public ShiroRealm shiroRealm() {
         // 配置 Realm，需自己实现，见 cc.mrbird.common.shiro.ShiroRealm
@@ -134,9 +128,8 @@ public class ShiroConfig {
     private SimpleCookie rememberMeCookie() {
         // 设置 cookie 名称，对应 login.html 页面的 <input type="checkbox" name="rememberMe"/>
         SimpleCookie cookie = new SimpleCookie("rememberMe");
-//        cookie.setSecure(true);  // 只在 https中有效 注释掉 正常
         // 设置 cookie 的过期时间，单位为秒，这里为一天
-        cookie.setMaxAge(febsProperies.getShiro().getCookieTimeout());
+        cookie.setMaxAge(febsProperties.getShiro().getCookieTimeout());
         return cookie;
     }
 
@@ -151,20 +144,6 @@ public class ShiroConfig {
         // rememberMe cookie 加密的密钥
         cookieRememberMeManager.setCipherKey(Base64.decode("4AvVhmFLUs0KTA3Kprsdag=="));
         return cookieRememberMeManager;
-    }
-
-    /**
-     * DefaultAdvisorAutoProxyCreator 和 AuthorizationAttributeSourceAdvisor 用于开启 shiro 注解的使用
-     * 如 @RequiresAuthentication， @RequiresUser， @RequiresPermissions 等
-     *
-     * @return DefaultAdvisorAutoProxyCreator
-     */
-    @Bean
-    @DependsOn({"lifecycleBeanPostProcessor"})
-    public DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator() {
-        DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
-        advisorAutoProxyCreator.setProxyTargetClass(true);
-        return advisorAutoProxyCreator;
     }
 
     @Bean
@@ -202,7 +181,7 @@ public class ShiroConfig {
         Collection<SessionListener> listeners = new ArrayList<>();
         listeners.add(new ShiroSessionListener());
         // 设置session超时时间，单位为毫秒
-        sessionManager.setGlobalSessionTimeout(febsProperies.getShiro().getSessionTimeout());
+        sessionManager.setGlobalSessionTimeout(febsProperties.getShiro().getSessionTimeout());
         sessionManager.setSessionListeners(listeners);
         sessionManager.setSessionDAO(redisSessionDAO());
         sessionManager.setSessionIdUrlRewritingEnabled(false);
